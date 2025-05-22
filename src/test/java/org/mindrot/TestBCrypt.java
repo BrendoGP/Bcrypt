@@ -89,9 +89,69 @@ public class TestBCrypt extends TestCase {
 	 * Entry point for unit tests
 	 * @param args unused
 	 */
-	public static void main(String[] args) {
+
+    public static void main(String[] args) {
 		junit.textui.TestRunner.run(TestBCrypt.class);
-	}
+        System.out.println("===== Testando geração de salt com diferentes fatores de custo =====");
+        for (int i = 4; i <= 12; i++) {
+            String salt = BCrypt.gensalt(i);
+            System.out.println("Cost Factor: " + i + " | Salt Gerado: " + salt);
+        }
+
+        System.out.println("\n===== Hashing de senha simples =====");
+        String pw1 = "minhaSenhaSegura123";
+        String salt1 = BCrypt.gensalt(10);
+        System.out.println("Senha original: " + pw1);
+        System.out.println("Salt usado: " + salt1);
+        String hash1 = BCrypt.hashpw(pw1, salt1);
+        System.out.println("Hash gerado: " + hash1);
+
+        System.out.println("\n===== Verificação de senha (correta e incorreta) =====");
+
+		String senhaOriginal = "minhaSenhaSegura123";
+		String senhaErrada = "senhaErrada";
+		String hashArmazenado = hash1; // já gerado anteriormente
+
+		System.out.println("Hash armazenado: " + hashArmazenado);
+
+		// Teste com senha correta
+		String saltExtraido = hashArmazenado.substring(0, 29); // os 29 primeiros caracteres contêm o salt
+		String hashGeradoComSenhaCorreta = BCrypt.hashpw(senhaOriginal, saltExtraido);
+		boolean resultadoCorreto = BCrypt.checkpw(senhaOriginal, hashArmazenado);
+
+		System.out.println("\n[✓] Teste com senha CORRETA:");
+		System.out.println("Senha digitada: " + senhaOriginal);
+		System.out.println("Salt extraído: " + saltExtraido);
+		System.out.println("Hash gerado com senha digitada: " + hashGeradoComSenhaCorreta);
+		System.out.println("Hash armazenado: " + hashArmazenado);
+		System.out.println("Resultado da verificação: " + resultadoCorreto);
+
+		// Teste com senha incorreta
+		String hashGeradoComSenhaIncorreta = BCrypt.hashpw(senhaErrada, saltExtraido);
+		boolean resultadoIncorreto = BCrypt.checkpw(senhaErrada, hashArmazenado);
+
+		System.out.println("\n[✗] Teste com senha INCORRETA:");
+		System.out.println("Senha digitada: " + senhaErrada);
+		System.out.println("Salt extraído: " + saltExtraido);
+		System.out.println("Hash gerado com senha digitada: " + hashGeradoComSenhaIncorreta);
+		System.out.println("Hash armazenado: " + hashArmazenado);
+		System.out.println("Resultado da verificação: " + resultadoIncorreto);
+
+        System.out.println("\n===== Hashing com caracteres internacionais =====");
+        String pw2 = "pässwördÜñîçødê";
+        String salt2 = BCrypt.gensalt(12);
+        String hash2 = BCrypt.hashpw(pw2, salt2);
+        System.out.println("Senha internacional: " + pw2);
+        System.out.println("Salt: " + salt2);
+        System.out.println("Hash: " + hash2);
+
+        boolean check2 = BCrypt.checkpw(pw2, hash2);
+        System.out.println("Verificação da senha internacional correta: " + check2);
+
+        System.out.println("\n===== Fim dos testes =====");
+    }
+
+
 
 	/**
 	 * Test method for 'BCrypt.hashpw(String, String)'
